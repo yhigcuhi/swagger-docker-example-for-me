@@ -1,0 +1,5 @@
+version: 1.0.0
+title: Sample API T
+description: >-
+  A sample API that uses a sample-site as an example to demonstrate features in
+  the OpenAPI 3.0 specification

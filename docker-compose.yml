@@ -3,7 +3,7 @@ version: '3.8'
 
 # 立てるコンテナ一覧
 services:
-  # swagger editor (Swaggerの仕様にしたがってYAML(JSON)ファイルを編集するツール)
+  # swagger editor (Swaggerの仕様にしたがってYAML(JSON)ファイルを編集するツール) TODO:いる？
   swagger-editor:
     # imageで
     image: swaggerapi/swagger-editor
@@ -12,26 +12,49 @@ services:
     # 利用ポート
     ports:
       - ${EDITOR_PORT:-8001}:8080
-  # swagger ui (Swagger YAML(JSON)ファイルのビュワー:いつもみてる あのサイト)
-  swagger-ui:
-    # imageで
-    image: swaggerapi/swagger-ui
+  # 参考 https://qiita.com/minato-naka/items/3b0bcf0788a2150f3171
+  # ReDoc (SwaggerUIよりもみやすいし、HTML出力とかできるらしいやつ)
+  redoc:
     # 管理コンテナ名
-    container_name: ${APP_NAME}-swagger-ui
+    container_name: ${APP_NAME}-redoc
+    # nginx confいじる(キャッシュ無効化)ために (カスタマイズした点)
+    build: ./docker/redoc
     # 利用ポート
     ports:
-      - ${UI_PORT:-8002}:8080
-    # マウント
+      - ${REDOC_PORT:-8004}:80
+    # マウント = ビルド先
     volumes:
-      # 公開する swagger形式のyamlファイル
-      - ./swagger/public/openapi.yaml:/openapi.yaml
-    # 環境構築
+      - ./swagger/public/openapi.yaml:/usr/share/nginx/html/openapi.yaml
+    # 環境変数
     environment:
-      SWAGGER_JSON: /openapi.yaml
+      # 閲覧する yamlの選択っぽい？複数個無理かなw
+      SPEC_URL: openapi.yaml
+  # ReDoc CLI (HTMLで出力すると火曜っぽい)
+  redoc-cli:
+    # 管理コンテナ名
+    container_name: ${APP_NAME}-redoc-cli
+    # library installとかあるので
+    build: ./docker/redoc-cli
+    # マウント = なんとなく build後のファイルなのかなと
+    volumes:
+      - ./swagger/public:/var/www/html
+  # https://zenn.dev/cozynooks/scraps/cebc9466fbb973
+  # swagger 分割ファイルをマージするやつ (Nodejs)
+  swagger-merger:
+    # 管理コンテナ名
+    container_name: ${APP_NAME}-swagger-merger
+    # library installとかあるので
+    build: ./docker/swagger-merger
+    # 初回起動コマンド後の
+    command: >
+      watch 'swagger-merger -i /docs/src/index.yaml -o /docs/public/openapi.yaml' /docs/src/
+    # マウント先
+    volumes:
+      - ./swagger:/docs
   # swagger openAPI(REST) mockup server 一旦作ってみる
   swagger-mockup-api:
     # imageで
-    image: stoplight/prism:4
+    image: stoplight/prism
     # 管理コンテナ名
     container_name: ${APP_NAME}-swagger-mockup-api
     # 利用ポート
