@@ -3,7 +3,7 @@ version: '3.8'
 
 # 立てるコンテナ一覧
 services:
-  # swagger editor (Swaggerの仕様にしたがってYAML(JSON)ファイルを編集するツール) TODO:いる？
+  # swagger editor (Swaggerの仕様にしたがってYAML(JSON)ファイルを編集するツール)
   swagger-editor:
     # imageで
     image: swaggerapi/swagger-editor
@@ -65,3 +65,13 @@ services:
     # マウント
     volumes:
       - ./swagger/public/openapi.yaml:/openapi.yaml
+  # https://github.com/openapitools/openapi-generator-cli
+  # openapi-generatorによるlaravelコード自動生成 コマンドの環境
+  laravel-codegen:
+    # image
+    image: openapitools/openapi-generator-cli
+    # マウント先
+    volumes:
+      - ./swagger:/local
+    # 起動時(docker compose up -dの時に generatorのコマンド実行) サンプルのlaravelを作らせるなら
+    command: generate -g php-laravel -i local/public/openapi.yaml -o local/codegen/laravel
