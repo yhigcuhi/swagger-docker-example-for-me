@@ -74,4 +74,5 @@ services:
     volumes:
       - ./swagger:/local
     # 起動時(docker compose up -dの時に generatorのコマンド実行) サンプルのlaravelを作らせるなら
+    # Javaでの記述だが、mustacheで自動生成内容をカスタマイズできる模様 https://qiita.com/watiko/items/0961287c02eac9211572
     command: generate -g php-laravel -i local/public/openapi.yaml -o local/codegen/laravel
